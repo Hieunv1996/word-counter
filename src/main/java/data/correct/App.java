@@ -9,7 +9,7 @@ import java.util.List;
 
 public class App {
     public static void main(String[] args) {
-        EndingCorrector endingCorrector = new EndingCorrector("result/question.1gram");
+        EndingCorrector endingCorrector = new EndingCorrector("result/kiki.1gram");
 
         String input = "result/wer_per_utt.txt";
         String output = input + ".out";
