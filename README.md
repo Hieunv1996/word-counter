@@ -13,7 +13,7 @@ Example:
 >   java -jar WordCounter.jar all.txt all.1gram.out 1 5
 
 Example output:
-> See `result/all.1gram.out`
+> 1-gram question domain: `result/question.1gram`
 ```json
 {
   "word": "những",
