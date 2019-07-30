@@ -21,9 +21,9 @@ public class TextPreprocess {
         this.preprocess();
     }
 
-    private String preprocessSentence(String sentence) {
+    public static String preprocessSentence(String sentence) {
         sentence = sentence.toLowerCase();
-        sentence = sentence.replaceAll("[\\.,\\?!~@#\\$%\\^&\\*\\(\\)\\{\\}\\[\\]\\+-:;\"/\\\\\\|`]+", "")
+        sentence = sentence.replaceAll("[\\.,\\?!~@#\\$%\\^&\\*\\(\\)\\{\\}\\[\\]\\+-:;\"/\\\\\\|`]+", " ")
                 .replaceAll("\\s+", " ")
                 .replaceAll("' ", "")
                 .replaceAll(" '", "")
@@ -42,7 +42,7 @@ public class TextPreprocess {
 
             String line;
             while ((line = reader.readLine()) != null) {
-                line = this.preprocessSentence(line);
+                line = preprocessSentence(line);
                 writer.write(line + "\n");
             }
         } catch (Exception e) {

@@ -2,6 +2,7 @@ package data.count;
 
 
 import com.google.gson.Gson;
+import data.preprocess.TextPreprocess;
 
 import java.io.*;
 import java.util.*;
@@ -14,7 +15,7 @@ public class WordCounter {
     List<Node> nodes = new ArrayList<>();
     Map<String, Integer> indexs = new HashMap<>();
 
-    public WordCounter(String corpusPath, String outputPath, int ngram, int min_count) {
+    public WordCounter(String corpusPath, String outputPath, int ngram, int minCount, int minCountChild) {
         this.corpusPath = corpusPath;
         this.outputPath = outputPath;
         this.ngram = ngram;
@@ -22,7 +23,7 @@ public class WordCounter {
         if (file.exists()) file.delete();
 
         this.count();
-        this.export(min_count);
+        this.export(minCount, minCountChild);
     }
 
     private void countOnSentence(String sentence) {
@@ -62,10 +63,12 @@ public class WordCounter {
             reader = new BufferedReader(new FileReader(this.corpusPath));
             String line;
             while ((line = reader.readLine()) != null) {
+                if (line.matches(".*\\d.*") || line.trim().equals("")) continue;
                 lineCount++;
                 if (lineCount % 1000 == 0) {
                     System.out.print("Current line " + lineCount + "\r");
                 }
+                line = TextPreprocess.preprocessSentence(line);
                 this.countOnSentence(line);
             }
         } catch (Exception e) {
@@ -73,15 +76,15 @@ public class WordCounter {
         }
     }
 
-    private void export(int min_count) {
+    private void export(int minCount, int minCountChild) {
         System.out.println();
         Gson gson = new Gson();
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(this.outputPath));
             for (Node node : this.nodes) {
-                if (node.count >= min_count){
-                    node.next = this.sortByValue(node.next);
-                    node.prev = this.sortByValue(node.prev);
+                if (node.count >= minCount) {
+                    node.next = this.sortByValue(node.next, minCountChild);
+                    node.prev = this.sortByValue(node.prev, minCountChild);
                     writer.write(gson.toJson(node) + "\n");
                 }
             }
@@ -91,20 +94,21 @@ public class WordCounter {
         }
     }
 
-    private <K, V> Map<K, V> sortByValue(Map<K, V> map) {
-        List<Map.Entry<K, V>> list = new LinkedList<>(map.entrySet());
+    private Map<String, Integer> sortByValue(Map<String, Integer> map, int minCountChild) {
+        List<Map.Entry<String, Integer>> list = new LinkedList<>(map.entrySet());
         Collections.sort(list, new Comparator<Object>() {
             public int compare(Object o1, Object o2) {
-                return ((Comparable<V>) ((Map.Entry<K, V>) (o2)).getValue()).compareTo(((Map.Entry<K, V>) (o1)).getValue());
+                return ((Comparable<Integer>) ((Map.Entry<String, Integer>) (o2)).getValue()).compareTo(((Map.Entry<String, Integer>) (o1)).getValue());
             }
         });
 
-        Map<K, V> result = new LinkedHashMap<>();
-        for (Iterator<Map.Entry<K, V>> it = list.iterator(); it.hasNext();) {
-            Map.Entry<K, V> entry = (Map.Entry<K, V>) it.next();
-            result.put(entry.getKey(), entry.getValue());
+        Map<String, Integer> result = new LinkedHashMap<>();
+        for (Iterator<Map.Entry<String, Integer>> it = list.iterator(); it.hasNext(); ) {
+            Map.Entry<String, Integer> entry = it.next();
+            if (entry.getValue() >= minCountChild) {
+                result.put(entry.getKey(), entry.getValue());
+            }
         }
-
         return result;
     }
 }
